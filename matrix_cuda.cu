@@ -10,7 +10,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define BLOCK_SIZE 16
+#ifndef BLOCK_SIZE
+    #define BLOCK_SIZE 16
+#endif
 
 /*
 *********************************************************************
@@ -34,7 +36,7 @@ return: none
 *********************************************************************
 */
 __global__ void gpu_matrix_mult(int *a,int *b, int *c, int m, int n, int k)
-{ 
+{
     int row = blockIdx.y * blockDim.y + threadIdx.y; 
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int sum = 0;
@@ -190,9 +192,13 @@ int main(int argc, char const *argv[])
 {
     int m, n, k;
     /* Fixed seed for illustration */
+    printf("Block size=%d\n", BLOCK_SIZE);
     srand(3333);
-    printf("please type in m n and k\n");
-    scanf("%d %d %d", &m, &n, &k);
+    //printf("please type in m n and k\n");
+    //scanf("%d %d %d", &m, &n, &k);
+    m=1024;
+    n=1024;
+    k=1024;
 
     // allocate memory in host RAM, h_cc is used to store CPU result
     int *h_a, *h_b, *h_c, *h_cc;
@@ -238,7 +244,8 @@ int main(int argc, char const *argv[])
     unsigned int grid_cols = (k + BLOCK_SIZE - 1) / BLOCK_SIZE;
     dim3 dimGrid(grid_cols, grid_rows);
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-   
+  
+    printf("Total threads is %d\n", grid_rows*grid_cols*BLOCK_SIZE*BLOCK_SIZE); 
     // Launch kernel 
     if(m == n && n == k)
     {
